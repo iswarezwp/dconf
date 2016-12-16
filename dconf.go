@@ -132,9 +132,8 @@ func (d *DConf) Load() error {
 			} else {
 				// The `key=value` line must behind the section line
 				if sec == "" {
-					// Ignore error config iterm
-					fmt.Println("Warning:", line, "does not belong to any section, ignore.")
-					continue
+					// support non-section configuration
+					sec = "Default"
 				}
 
 				i = strings.IndexAny(line, "=")

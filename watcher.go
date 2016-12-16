@@ -19,6 +19,7 @@ func eventProcessor(watcher *fsnotify.Watcher, callback func()) {
 		select {
 		case event := <-watcher.Events:
 			if event.Op&fsnotify.Write == fsnotify.Write {
+				fmt.Println("file modified")
 				if !fired {
 					// Avoid multiple reload at the same time
 					fired = true

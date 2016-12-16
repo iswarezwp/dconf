@@ -106,10 +106,10 @@ func Test(t *testing.T) {
 
 	// ---
 	createTestConfFile(t, TEST_CONF4)
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(1 * time.Millisecond)
 	v = conf.Get("testKey1", "defaultValue")
-	if v != "defaultValue" {
-		t.Fatalf("Expected: defaultValue, got: %s", v)
+	if v != "TestValue1" {
+		t.Fatalf("Expected: TestValue1, got: %s", v)
 	}
 
 	os.Remove(TEST_FILE)
