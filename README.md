@@ -1,12 +1,10 @@
 # dconf
-[![Build Status](https://drone.io/github.com/iswarezwp/dconf/status.png)](https://drone.io/github.com/iswarezwp/dconf/latest)
-
 Dynanic config file parser for Golang, support runtime modification.
 
 # Features
-1. Ini file parser
-2. Runtime configuration modify
-3. Thread safe
+- Ini file parser
+- Runtime configuration modify
+- Thread safe
 
 # Example
 ```
