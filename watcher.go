@@ -6,7 +6,6 @@ Created on 2016-12-16 09:23
 package dconf
 
 import (
-	"fmt"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -28,24 +27,23 @@ func eventProcessor(watcher *fsnotify.Watcher, callback func()) {
 					}()
 				}
 			}
-		case err := <-watcher.Errors:
-			fmt.Println("error:", err)
+		case <-watcher.Errors:
 			return
 		}
 	}
 }
 
-func watchFile(filename string, callback func()) error {
+func watchFile(filename string, callback func()) (*fsnotify.Watcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = watcher.Add(filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	go eventProcessor(watcher, callback)
-	return nil
+	return watcher, nil
 }

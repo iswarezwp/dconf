@@ -8,6 +8,7 @@ package dconf
 import (
 	"bufio"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"io"
 	"os"
 	"strings"
@@ -22,7 +23,9 @@ type DConf struct {
 	reload bool
 
 	// Need a mutex when support reload on change
-	mutex *sync.Mutex
+	watcher *fsnotify.Watcher
+	mutex   *sync.Mutex
+	loadOK  bool
 }
 
 func NewDConf(filename string, reload bool) (*DConf, error) {
@@ -31,16 +34,16 @@ func NewDConf(filename string, reload bool) (*DConf, error) {
 		conf:     make(map[string]map[string]string),
 		reload:   reload,
 		mutex:    &sync.Mutex{},
+		loadOK:   true,
 	}
 	if err := d.Load(); err != nil {
-		return nil, err
-	}
-
-	if reload {
-		if err := watchFile(filename, d.OnFileChange); err != nil {
+		if os.IsNotExist(err) {
+			d.loadOK = false
+		} else {
 			return nil, err
 		}
 	}
+
 	return d, nil
 }
 
@@ -61,6 +64,15 @@ func (d *DConf) Get(key, defaultValue string) string {
 }
 
 func (d *DConf) GetValue(sec, key, defaultValue string) string {
+	// If load configuration failed on start, try to load it first.
+	// This will ensure that all changes being tracked even if the
+	// fsnotify backend not work.
+	if !d.loadOK {
+		if err := d.Load(); err == nil {
+			d.loadOK = true
+		}
+	}
+
 	d.lock()
 	defer d.unlock()
 	if s, ok := d.conf[sec]; ok {
@@ -70,6 +82,10 @@ func (d *DConf) GetValue(sec, key, defaultValue string) string {
 	}
 
 	return defaultValue
+}
+
+func (d *DConf) IsLoaded() bool {
+	return d.loadOK
 }
 
 func (d *DConf) setValue(sec, key, value string) {
@@ -175,5 +191,20 @@ func (d *DConf) Load() error {
 			return err
 		}
 	}
+
+	if d.reload {
+		d.watcher, err = watchFile(d.filename, d.OnFileChange)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (d *DConf) Close() {
+	if d.reload {
+		d.watcher.Close()
+		d.loadOK = false
+	}
 }

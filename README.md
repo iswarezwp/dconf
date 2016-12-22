@@ -28,4 +28,7 @@ Dynanic config file parser for Golang, support runtime modification.
 
     // Get values from other sections
     conf.GetValue("secName", "keyName", "defaultValueIfNotExists")
+
+    // Close the watcher backend if reload is set to true
+    conf.Close()
 ```

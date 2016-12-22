@@ -80,7 +80,7 @@ func Test(t *testing.T) {
 
 	// ---
 	createTestConfFile(t, TEST_CONF2)
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
 	v = conf.Get("testKey1", "defaultValue")
 	if v != "TestValue2" {
 		t.Fatalf("Expected: TestValue2, got: %s", v)
@@ -88,7 +88,7 @@ func Test(t *testing.T) {
 
 	// ---
 	createTestConfFile(t, TEST_CONF3)
-	time.Sleep(1 * time.Second)
+	time.Sleep(100 * time.Millisecond)
 	v = conf.Get("testKey1", "defaultValue")
 	if v != "TestValue1" {
 		t.Fatalf("Expected: TestValue1, got: %s", v)
@@ -106,11 +106,53 @@ func Test(t *testing.T) {
 
 	// ---
 	createTestConfFile(t, TEST_CONF4)
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	v = conf.Get("testKey1", "defaultValue")
 	if v != "TestValue1" {
 		t.Fatalf("Expected: TestValue1, got: %s", v)
 	}
 
-	os.Remove(TEST_FILE)
+	conf.Close()
+	time.Sleep(100 * time.Millisecond)
+
+	err = os.Remove(TEST_FILE)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+}
+
+func TestFileNotExist(t *testing.T) {
+	conf, err := NewDConf(TEST_FILE, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if conf.IsLoaded() {
+		t.Fatal("IsLoaded should be false")
+	}
+
+	// ---
+	v := conf.Get("testKey1", "defaultValue")
+	if v != "defaultValue" {
+		t.Fatalf("Expected: defaultValue, got: %s", v)
+	}
+
+	// ---
+	createTestConfFile(t, TEST_CONF1)
+	v = conf.Get("testKey1", "defaultValue")
+	if v != "TestValue1" {
+		t.Fatalf("Expected: TestValue1, got: %s", v)
+	}
+
+	if !conf.IsLoaded() {
+		t.Fatal("IsLoaded should be true")
+	}
+
+	conf.Close()
+	time.Sleep(100 * time.Millisecond)
+
+	err = os.Remove(TEST_FILE)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 }
